@@ -8,6 +8,7 @@ const { createAuditLog } = require('../middleware/auditLog');
  */
 const getUsers = async (req, res, next) => {
   try {
+    const { role, search, page, limit } = req.query;
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 20;
     const offset = (pageNum - 1) * limitNum;

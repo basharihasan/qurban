@@ -8,6 +8,7 @@ const DISTRIBUTION_STATUSES = ['not_ready', 'ready_pickup', 'picked_up', 'waitin
  */
 const getDistributions = async (req, res, next) => {
   try {
+    const { status, method, search, page, limit } = req.query;
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 20;
     const offset = (pageNum - 1) * limitNum;
