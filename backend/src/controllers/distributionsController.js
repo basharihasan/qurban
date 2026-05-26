@@ -73,7 +73,7 @@ const getDistribution = async (req, res, next) => {
 const updateDistributionStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, courier_name, courier_phone, notes } = req.body;
+    const { status, courier_name, courier_phone, notes, recipient_phone } = req.body;
 
     if (!DISTRIBUTION_STATUSES.includes(status)) {
       return res.status(400).json({ success: false, message: `Invalid status` });
@@ -83,9 +83,10 @@ const updateDistributionStatus = async (req, res, next) => {
     if (!dist) return res.status(404).json({ success: false, message: 'Distribution not found' });
 
     const updateData = { status, updated_at: new Date() };
-    if (courier_name) updateData.courier_name = courier_name;
-    if (courier_phone) updateData.courier_phone = courier_phone;
-    if (notes) updateData.notes = notes;
+    if (courier_name !== undefined) updateData.courier_name = courier_name;
+    if (courier_phone !== undefined) updateData.courier_phone = courier_phone;
+    if (notes !== undefined) updateData.notes = notes;
+    if (recipient_phone !== undefined) updateData.recipient_phone = recipient_phone;
     if (status === 'delivered') updateData.delivery_time = new Date();
 
     // Handle proof photo upload

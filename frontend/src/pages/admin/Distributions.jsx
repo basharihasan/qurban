@@ -12,7 +12,13 @@ import { MagnifyingGlassIcon, ArrowDownTrayIcon, PhotoIcon } from '@heroicons/re
 
 const UpdateStatusModal = ({ isOpen, onClose, dist }) => {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ status: dist?.status || '', courier_name: dist?.courier_name || '', courier_phone: dist?.courier_phone || '', notes: '' });
+  const [form, setForm] = useState({ 
+    status: dist?.status || '', 
+    courier_name: dist?.courier_name || '', 
+    courier_phone: dist?.courier_phone || '', 
+    recipient_phone: dist?.recipient_phone || '',
+    notes: dist?.notes || '' 
+  });
   const [proofFile, setProofFile] = useState(null);
 
   const mutation = useMutation({
@@ -21,6 +27,7 @@ const UpdateStatusModal = ({ isOpen, onClose, dist }) => {
       fd.append('status', form.status);
       if (form.courier_name) fd.append('courier_name', form.courier_name);
       if (form.courier_phone) fd.append('courier_phone', form.courier_phone);
+      if (form.recipient_phone !== undefined) fd.append('recipient_phone', form.recipient_phone);
       if (form.notes) fd.append('notes', form.notes);
       if (proofFile) fd.append('proof', proofFile);
       await api.put(`/distributions/${dist.id}/status`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -57,6 +64,16 @@ const UpdateStatusModal = ({ isOpen, onClose, dist }) => {
             <option value="">Pilih Status</option>
             {statuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </Select>
+        </div>
+
+        <div className="form-group">
+          <label className="label">No. HP Penerima / WhatsApp</label>
+          <Input 
+            type="tel" 
+            placeholder="Contoh: 08123456789" 
+            value={form.recipient_phone} 
+            onChange={(e) => setForm({ ...form, recipient_phone: e.target.value })} 
+          />
         </div>
         {needsCourier && (
           <>

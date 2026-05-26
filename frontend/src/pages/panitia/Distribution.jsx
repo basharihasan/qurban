@@ -16,7 +16,8 @@ const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
     status: dist?.status || '',
     courier_name: dist?.courier_name || '',
     courier_phone: dist?.courier_phone || '',
-    notes: '',
+    recipient_phone: dist?.recipient_phone || '',
+    notes: dist?.notes || '',
   });
   const [proofFile, setProofFile] = useState(null);
 
@@ -26,6 +27,7 @@ const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
       fd.append('status', form.status);
       if (form.courier_name) fd.append('courier_name', form.courier_name);
       if (form.courier_phone) fd.append('courier_phone', form.courier_phone);
+      if (form.recipient_phone !== undefined) fd.append('recipient_phone', form.recipient_phone);
       if (form.notes) fd.append('notes', form.notes);
       if (proofFile) fd.append('proof', proofFile);
       await api.put(`/distributions/${dist.id}/status`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -78,6 +80,16 @@ const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
               ⚡ Cepat: set ke status berikutnya ({nextStatus})
             </button>
           )}
+        </div>
+
+        <div className="form-group">
+          <label className="label">No. HP Penerima / WhatsApp</label>
+          <Input 
+            type="tel" 
+            placeholder="Contoh: 08123456789" 
+            value={form.recipient_phone} 
+            onChange={(e) => setForm({ ...form, recipient_phone: e.target.value })} 
+          />
         </div>
 
         {['on_delivery', 'delivered'].includes(form.status) && (
