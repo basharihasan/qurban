@@ -1,42 +1,27 @@
 # render.yaml — Render Infrastructure as Code
 # Docs: https://render.com/docs/infrastructure-as-code
-#
-# Deploy: Connect your GitHub repo in Render dashboard → "New Blueprint Instance"
-# This file auto-configures the backend service.
 
 services:
-  # ─── Backend API (Web Service) ────────────────────────────────────────────
   - type: web
     name: qurban-api
-    runtime: docker
-    # Build context is the backend/ directory
-    dockerContext: ./backend
-    dockerfilePath: ./backend/Dockerfile
-    
-    # Render free tier: shared CPU, 512MB RAM, spins down after 15 min inactivity
+    runtime: node
     plan: free
 
-    # Health check — Render will restart the service if this fails
+    # Build from backend subdirectory
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm run start:prod
+
+    # Health check
     healthCheckPath: /api/health
 
-    # Auto-deploy on push to main branch
     autoDeploy: true
     branch: main
 
-    # Environment variables
-    # Set sensitive values in Render Dashboard → Environment (not here!)
     envVars:
       - key: NODE_ENV
         value: production
-
-      - key: PORT
-        value: 10000  # Render assigns this port internally
-
-      # DATABASE_URL — set in Render Dashboard as a secret
       - key: DATABASE_URL
-        sync: false   # marked sync:false = must be set manually in dashboard
-
-      # JWT secrets — set in Render Dashboard
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: JWT_REFRESH_SECRET
@@ -45,26 +30,16 @@ services:
         value: 7d
       - key: JWT_REFRESH_EXPIRES_IN
         value: 30d
-
-      # Frontend URL (your Vercel URL)
       - key: FRONTEND_URL
         sync: false
-
-      # WhatsApp (optional)
       - key: WA_ENABLED
         value: "false"
       - key: WA_API_URL
         value: https://api.fonnte.com/send
       - key: WA_API_TOKEN
         sync: false
-
-      # Upload settings
       - key: UPLOAD_DIR
         value: uploads
-      - key: MAX_FILE_SIZE
-        value: "5242880"
-
-      # Rate limiting
       - key: RATE_LIMIT_MAX
         value: "200"
       - key: AUTH_RATE_LIMIT_MAX
