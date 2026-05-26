@@ -215,16 +215,42 @@ const importUsers = async (req, res, next) => {
       const row = rows[i];
       const rowNum = i + 2; // Excel row number (1-indexed + header)
 
+      // 1. Parse Name
       const name = row['Nama'] || row['name'] || row['NAME'];
-      const phone = String(row['No HP'] || row['phone'] || row['PHONE'] || '').trim();
-      const address = row['Alamat'] || row['address'] || '';
-      const animal_type = row['Jenis Hewan'] || row['animal_type'] || 'kambing';
-      const group_name = row['Kelompok'] || row['group'] || '';
-      const delivery_method = row['Preferensi'] || row['delivery'] || 'pickup';
+
+      // 2. Parse Phone (support 'No HP', 'No. HP', 'phone', etc.)
+      const rawPhone = row['No. HP'] || row['No HP'] || row['phone'] || row['PHONE'] || '';
+      const phone = String(rawPhone).trim();
 
       if (!name || !phone) {
-        results.errors.push({ row: rowNum, message: 'Name and phone are required' });
+        results.errors.push({ row: rowNum, message: 'Name and Phone Number are required' });
         continue;
+      }
+
+      // 3. Parse Address & Delivery Method from 'Pengambilan/Pengiriman' or 'Alamat'
+      const rawDelivery = row['Pengambilan/Pengiriman'] || row['Alamat'] || row['address'] || '';
+      let address = '';
+      let delivery_method = 'pickup';
+
+      if (rawDelivery) {
+        const lowerDelivery = String(rawDelivery).toLowerCase();
+        if (lowerDelivery.includes('diambil') || lowerDelivery.includes('pickup')) {
+          delivery_method = 'pickup';
+          address = String(rawDelivery);
+        } else {
+          delivery_method = 'delivery';
+          address = String(rawDelivery);
+        }
+      }
+
+      // 4. Parse Animal Code/Group from 'Hewan' or 'Kelompok'
+      const rawHewan = row['Hewan'] || row['Kelompok'] || row['group'] || '';
+      const group_name = String(rawHewan).trim();
+
+      // 5. Detect Animal Type (Sapi / Kambing) based on Hewan column
+      let animal_type = 'kambing';
+      if (rawHewan && String(rawHewan).toLowerCase().includes('sapi')) {
+        animal_type = 'sapi';
       }
 
       try {
@@ -235,15 +261,74 @@ const importUsers = async (req, res, next) => {
         }
 
         const password_hash = await bcrypt.hash(phone, salt);
-        await db('users').insert({
-          name: String(name),
-          phone,
-          password_hash,
-          role: 'mudhohi',
-          address: String(address),
-          group_name: String(group_name),
-          first_login: true,
+
+        // Run database inserts inside a local transaction to ensure consistency
+        await db.transaction(async (trx) => {
+          // Insert user
+          const [insertedUser] = await trx('users')
+            .insert({
+              name: String(name).trim(),
+              phone,
+              password_hash,
+              role: 'mudhohi',
+              address: address ? String(address).trim() : null,
+              group_name: group_name ? String(group_name).trim() : null,
+              first_login: true,
+            })
+            .returning('id');
+
+          const userId = insertedUser.id || insertedUser;
+
+          // If there is animal information, manage linking
+          if (group_name) {
+            // Find or create the animal
+            let animal = await trx('animals').where({ animal_code: group_name }).first();
+            let animalId = animal ? animal.id : null;
+
+            if (!animal) {
+              const [newAnimal] = await trx('animals')
+                .insert({
+                  animal_code: group_name,
+                  animal_type: animal_type,
+                  weight: 0,
+                  status: 'registered',
+                })
+                .returning('id');
+              animalId = newAnimal.id || newAnimal;
+            }
+
+            // Create mudhohi_animals link
+            await trx('mudhohi_animals').insert({
+              user_id: userId,
+              animal_id: animalId,
+              group_name: group_name,
+            });
+
+            // Create default delivery confirmation
+            await trx('delivery_confirmations').insert({
+              user_id: userId,
+              method: delivery_method,
+              recipient_name: String(name).trim(),
+              recipient_phone: phone,
+              delivery_address: delivery_method === 'delivery' ? String(address).trim() : null,
+              notes: row['Jatah & Permintaan'] ? String(row['Jatah & Permintaan']).trim() : null,
+              confirmed_at: new Date(),
+            });
+
+            // Create default distribution
+            await trx('distributions').insert({
+              user_id: userId,
+              animal_id: animalId,
+              status: 'waiting_delivery',
+              method: delivery_method,
+              recipient_name: String(name).trim(),
+              recipient_phone: phone,
+              delivery_address: delivery_method === 'delivery' ? String(address).trim() : null,
+              notes: row['Jatah & Permintaan'] ? String(row['Jatah & Permintaan']).trim() : null,
+            });
+          }
         });
+
         results.success++;
       } catch (err) {
         results.errors.push({ row: rowNum, message: err.message });
@@ -261,7 +346,7 @@ const importUsers = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: `Import completed: ${results.success} added, ${results.skipped} skipped`,
+      message: `Import selesai: ${results.success} ditambahkan, ${results.skipped} dilewati`,
       data: results,
     });
   } catch (error) {
