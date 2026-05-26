@@ -320,9 +320,18 @@ export default function PanitiaDistribution() {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-center">
                             <div className="flex items-center justify-center gap-2">
-                              {d.recipient_phone && (
+                              {(d.recipient_phone || d.mudhohi_phone) && (
                                 <a 
-                                  href={`https://wa.me/${d.recipient_phone?.replace(/^0/, '62')}`} 
+                                  href={`https://wa.me/${(() => {
+                                    const p = d.recipient_phone || d.mudhohi_phone || '';
+                                    let clean = p.replace(/[^0-9]/g, '');
+                                    if (clean.startsWith('0')) {
+                                      return '62' + clean.slice(1);
+                                    } else if (clean.startsWith('8')) {
+                                      return '62' + clean;
+                                    }
+                                    return clean;
+                                  })()}`} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="btn btn-secondary text-xs px-2.5 py-1.5 flex items-center gap-1 hover:text-emerald-600 transition-colors"
