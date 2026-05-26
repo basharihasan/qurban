@@ -4,12 +4,10 @@
 services:
   - type: web
     name: qurban-api
-    runtime: node
+    runtime: docker
     plan: free
-
-    # Build from backend subdirectory
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm run start:prod
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
 
     # Health check
     healthCheckPath: /api/health
