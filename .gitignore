@@ -1,0 +1,13 @@
+# Root level gitignore
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+Thumbs.db
+dist/
+.vscode/
+.idea/
+# Nested empty folder
+qurban/
