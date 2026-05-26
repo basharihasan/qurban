@@ -28,7 +28,7 @@ export default function DeliveryConfirmation() {
     delivery_address: existingConf?.delivery_address || '',
     maps_link: existingConf?.maps_link || '',
     notes: existingConf?.notes || '',
-    pickup_location: existingConf?.pickup_location || 'Masjid Al-Falah, Jl. Utama No. 1',
+    pickup_location: existingConf?.pickup_location || "Mah'had Al-Hijrah \nJl. Kp. Sukamaju Desa, RT.02/RW.10, Cimekar, Cileunyi, Kabupaten Bandung, Jawa Barat 40623 https://maps.app.goo.gl/Xr4QQLyVq1Ry7JMZA",
   });
 
   const mutation = useMutation({
@@ -47,6 +47,28 @@ export default function DeliveryConfirmation() {
     e.preventDefault();
     if (!method) { toast.error('Pilih metode pengiriman terlebih dahulu'); return; }
     mutation.mutate({ method, ...form });
+  };
+
+  const renderPickupLocation = (text) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold underline block mt-2 inline-flex items-center gap-1"
+          >
+            📍 Buka Google Maps
+          </a>
+        );
+      }
+      return <span key={i} className="font-semibold">{part}</span>;
+    });
   };
 
   return (
@@ -127,8 +149,10 @@ export default function DeliveryConfirmation() {
               {method === 'pickup' && (
                 <div className="alert-info animate-slide-up">
                   <h4 className="font-semibold mb-2 text-blue-800 dark:text-blue-200">📍 Informasi Pengambilan</h4>
-                  <p className="text-sm">Lokasi: <strong>{form.pickup_location}</strong></p>
-                  <p className="text-sm mt-1">Jadwal: Hubungi panitia untuk konfirmasi waktu pengambilan</p>
+                  <div className="text-sm leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+                    Lokasi: {renderPickupLocation(form.pickup_location)}
+                  </div>
+                  <p className="text-sm mt-2 text-blue-700 dark:text-blue-300">Jadwal: Hubungi panitia untuk konfirmasi waktu pengambilan</p>
                 </div>
               )}
 

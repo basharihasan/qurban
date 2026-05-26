@@ -111,7 +111,7 @@ exports.seed = async function (knex) {
     {
       user_id: mudhohiInserted[3].id,
       method: 'pickup',
-      pickup_location: 'Masjid Al-Falah, Jl. Utama No. 1',
+      pickup_location: "Mah'had Al-Hijrah \nJl. Kp. Sukamaju Desa, RT.02/RW.10, Cimekar, Cileunyi, Kabupaten Bandung, Jawa Barat 40623 https://maps.app.goo.gl/Xr4QQLyVq1Ry7JMZA",
       confirmed_at: new Date(),
     },
   ]);
