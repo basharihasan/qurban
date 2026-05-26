@@ -246,6 +246,7 @@ export default function PanitiaDistribution() {
                         </span>
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Metode</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">PJ</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Alamat & Permintaan</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Aksi</th>
@@ -285,6 +286,18 @@ export default function PanitiaDistribution() {
                               <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1 w-max">
                                 🏠 AMBIL SENDIRI
                               </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            {d.courier_name ? (
+                              <div>
+                                <p className="font-semibold text-stone-900 dark:text-white text-sm">{d.courier_name}</p>
+                                {d.courier_phone && (
+                                  <p className="text-xs text-stone-500 font-mono mt-0.5">{d.courier_phone}</p>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-stone-300 dark:text-stone-700">-</span>
                             )}
                           </td>
                           <td className="px-4 py-4 max-w-xs">
