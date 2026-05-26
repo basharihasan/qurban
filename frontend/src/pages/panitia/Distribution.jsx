@@ -8,7 +8,7 @@ import { Button, Select, EmptyState, Modal, Input, Textarea } from '../../compon
 import { DistributionStatusBadge } from '../../components/ui/StatusBadges';
 import api from '../../services/api';
 import { formatDateTime } from '../../utils/helpers';
-import { PhotoIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, PhoneIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
   const queryClient = useQueryClient();
@@ -128,16 +128,17 @@ const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
 };
 
 export default function PanitiaDistribution() {
+  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [methodFilter, setMethodFilter] = useState('');
   const [updateDist, setUpdateDist] = useState(null);
   const [sortAsc, setSortAsc] = useState(true);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['dist-panitia', { statusFilter, methodFilter }],
+    queryKey: ['dist-panitia', { search, statusFilter, methodFilter }],
     queryFn: async () => {
       const res = await api.get('/distributions', {
-        params: { status: statusFilter || undefined, method: methodFilter || undefined, limit: 50 },
+        params: { search: search || undefined, status: statusFilter || undefined, method: methodFilter || undefined, limit: 50 },
       });
       return res.data.data;
     },
@@ -189,9 +190,18 @@ export default function PanitiaDistribution() {
         <TopBar title="Manajemen Distribusi" />
 
         <main className="p-4 lg:p-6 space-y-5 animate-fade-in">
-          {/* Filters & Sorting Quick Info */}
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-            <div className="flex gap-2 flex-wrap flex-1">
+          {/* Search & Filters */}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between flex-wrap">
+            <div className="flex gap-2 flex-wrap flex-1 w-full sm:w-auto">
+              <div className="relative w-full sm:w-60">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                <input 
+                  placeholder="Cari nama atau nomor HP..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)} 
+                  className="input pl-9 w-full" 
+                />
+              </div>
               <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="flex-1 sm:flex-none sm:w-44">
                 <option value="">Semua Status</option>
                 <option value="not_ready">Belum Siap</option>
