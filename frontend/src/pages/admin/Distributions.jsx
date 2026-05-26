@@ -195,9 +195,15 @@ export default function AdminDistributions() {
                     </td>
                     <td><span className="font-mono text-emerald-700 dark:text-emerald-400 text-sm">{d.animal_code || '-'}</span></td>
                     <td>
-                      <span className={`badge ${d.method === 'delivery' ? 'badge-blue' : 'badge-gray'}`}>
-                        {d.method === 'delivery' ? '🚚 Kirim' : '🏠 Ambil'}
-                      </span>
+                      {d.method === 'delivery' ? (
+                        <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1 w-max">
+                          🛵 Kirim (Gojek)
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 flex items-center gap-1 w-max">
+                          🏠 Ambil Sendiri
+                        </span>
+                      )}
                     </td>
                     <td>
                       {d.courier_name ? (

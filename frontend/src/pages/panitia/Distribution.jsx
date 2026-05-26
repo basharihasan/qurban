@@ -183,11 +183,22 @@ export default function PanitiaDistribution() {
                 <div key={d.id} className="card p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                         <p className="font-semibold text-stone-900 dark:text-white truncate">{d.mudhohi_name}</p>
-                        <span className={`badge flex-shrink-0 ${d.method === 'delivery' ? 'badge-blue' : 'badge-gray'}`}>
-                          {d.method === 'delivery' ? '🚚' : '🏠'}
-                        </span>
+                        {d.animal_code && (
+                          <span className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+                            {d.animal_code}
+                          </span>
+                        )}
+                        {d.method === 'delivery' ? (
+                          <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
+                            🛵 KIRIM (GOJEK)
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
+                            🏠 AMBIL SENDIRI
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-stone-500 font-mono">{d.mudhohi_phone}</p>
                       {d.delivery_address && (
