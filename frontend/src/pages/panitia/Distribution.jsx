@@ -138,7 +138,7 @@ export default function PanitiaDistribution() {
     queryKey: ['dist-panitia', { search, statusFilter, methodFilter }],
     queryFn: async () => {
       const res = await api.get('/distributions', {
-        params: { search: search || undefined, status: statusFilter || undefined, method: methodFilter || undefined, limit: 50 },
+        params: { search: search || undefined, status: statusFilter || undefined, method: methodFilter || undefined, limit: 500 },
       });
       return res.data.data;
     },

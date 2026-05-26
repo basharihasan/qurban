@@ -8,8 +8,9 @@ const { createAuditLog } = require('../middleware/auditLog');
  */
 const getUsers = async (req, res, next) => {
   try {
-    const { role, search, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 20;
+    const offset = (pageNum - 1) * limitNum;
 
     let query = db('users').select(
       'id', 'name', 'phone', 'role', 'address', 'group_name', 'is_active', 'first_login', 'created_at'
@@ -25,7 +26,7 @@ const getUsers = async (req, res, next) => {
     const totalQuery = query.clone().clearSelect().clearOrder().count('* as count').first();
     const [total, users] = await Promise.all([
       totalQuery,
-      query.orderBy('created_at', 'desc').limit(limit).offset(offset),
+      query.orderBy('created_at', 'desc').limit(limitNum).offset(offset),
     ]);
 
     res.json({

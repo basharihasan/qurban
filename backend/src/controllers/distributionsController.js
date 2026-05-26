@@ -8,8 +8,9 @@ const DISTRIBUTION_STATUSES = ['not_ready', 'ready_pickup', 'picked_up', 'waitin
  */
 const getDistributions = async (req, res, next) => {
   try {
-    const { status, method, search, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 20;
+    const offset = (pageNum - 1) * limitNum;
 
     let query = db('distributions as d')
       .join('users as u', 'd.user_id', 'u.id')
@@ -33,7 +34,7 @@ const getDistributions = async (req, res, next) => {
 
     const [total, distributions] = await Promise.all([
       query.clone().clearSelect().clearOrder().count('d.id as count').first(),
-      query.orderBy('d.updated_at', 'desc').limit(limit).offset(offset),
+      query.orderBy('d.updated_at', 'desc').limit(limitNum).offset(offset),
     ]);
 
     res.json({

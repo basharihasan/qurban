@@ -67,7 +67,7 @@ export default function PanitiaSlaughter() {
   const { data, isLoading } = useQuery({
     queryKey: ['animals-slaughter', { statusFilter }],
     queryFn: async () => {
-      const res = await api.get('/animals', { params: { status: statusFilter || undefined, limit: 50 } });
+      const res = await api.get('/animals', { params: { status: statusFilter || undefined, limit: 200 } });
       return res.data.data;
     },
     refetchInterval: 10000,

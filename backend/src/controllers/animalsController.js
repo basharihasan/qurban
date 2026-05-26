@@ -10,7 +10,9 @@ const ANIMAL_STATUSES = ['registered', 'ready', 'slaughtered', 'processed', 'dis
 const getAnimals = async (req, res, next) => {
   try {
     const { status, animal_type, search, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 20;
+    const offset = (pageNum - 1) * limitNum;
 
     let query = db('animals').select('*');
 
@@ -27,7 +29,7 @@ const getAnimals = async (req, res, next) => {
       query
         .orderByRaw("CASE animal_type WHEN 'sapi' THEN 1 WHEN 'kambing' THEN 2 WHEN 'domba' THEN 3 WHEN 'unta' THEN 4 ELSE 5 END ASC")
         .orderByRaw("NULLIF(regexp_replace(animal_code, '[^0-9]', '', 'g'), '')::integer ASC")
-        .limit(limit)
+        .limit(limitNum)
         .offset(offset),
     ]);
 
