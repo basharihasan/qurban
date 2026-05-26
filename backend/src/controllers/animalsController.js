@@ -24,7 +24,11 @@ const getAnimals = async (req, res, next) => {
 
     const [total, animals] = await Promise.all([
       query.clone().clearSelect().clearOrder().count('* as count').first(),
-      query.orderBy('created_at', 'desc').limit(limit).offset(offset),
+      query
+        .orderByRaw("CASE animal_type WHEN 'sapi' THEN 1 WHEN 'kambing' THEN 2 WHEN 'domba' THEN 3 WHEN 'unta' THEN 4 ELSE 5 END ASC")
+        .orderByRaw("NULLIF(regexp_replace(animal_code, '[^0-9]', '', 'g'), '')::integer ASC")
+        .limit(limit)
+        .offset(offset),
     ]);
 
     res.json({
