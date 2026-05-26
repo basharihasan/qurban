@@ -131,6 +131,7 @@ export default function PanitiaDistribution() {
   const [statusFilter, setStatusFilter] = useState('');
   const [methodFilter, setMethodFilter] = useState('');
   const [updateDist, setUpdateDist] = useState(null);
+  const [sortAsc, setSortAsc] = useState(true);
 
   const { data, isLoading } = useQuery({
     queryKey: ['dist-panitia', { statusFilter, methodFilter }],
@@ -145,6 +146,42 @@ export default function PanitiaDistribution() {
 
   const dists = data || [];
 
+  // Custom operational sorting:
+  // 1. Move completed items (picked_up, delivered) to the bottom
+  // 2. Sort active items by animal type (Sapi first, then Kambing) and then by code number ascending (or descending if toggled)
+  const sortedDists = [...dists].sort((a, b) => {
+    const isACompleted = ['picked_up', 'delivered'].includes(a.status);
+    const isBCompleted = ['picked_up', 'delivered'].includes(b.status);
+
+    if (isACompleted && !isBCompleted) return 1;
+    if (!isACompleted && isBCompleted) return -1;
+
+    const codeA = a.animal_code || '';
+    const codeB = b.animal_code || '';
+
+    if (codeA && codeB) {
+      const typeA = a.animal_type || '';
+      const typeB = b.animal_type || '';
+
+      const typeOrder = { sapi: 1, kambing: 2, domba: 3, unta: 4 };
+      const orderA = typeOrder[typeA] || 5;
+      const orderB = typeOrder[typeB] || 5;
+
+      if (orderA !== orderB) {
+        return sortAsc ? orderA - orderB : orderB - orderA;
+      }
+
+      const numA = parseInt(codeA.replace(/[^0-9]/g, '')) || 0;
+      const numB = parseInt(codeB.replace(/[^0-9]/g, '')) || 0;
+      return sortAsc ? numA - numB : numB - numA;
+    }
+
+    if (codeA && !codeB) return sortAsc ? -1 : 1;
+    if (!codeA && codeB) return sortAsc ? 1 : -1;
+
+    return 0;
+  });
+
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <Sidebar />
@@ -152,77 +189,135 @@ export default function PanitiaDistribution() {
         <TopBar title="Manajemen Distribusi" />
 
         <main className="p-4 lg:p-6 space-y-5 animate-fade-in">
-          {/* Filters */}
-          <div className="flex gap-2 flex-wrap">
-            <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="flex-1 sm:flex-none sm:w-44">
-              <option value="">Semua Status</option>
-              <option value="not_ready">Belum Siap</option>
-              <option value="ready_pickup">Siap Ambil</option>
-              <option value="picked_up">Sudah Ambil</option>
-              <option value="waiting_delivery">Menunggu</option>
-              <option value="on_delivery">Dalam Kirim</option>
-              <option value="delivered">Terkirim</option>
-            </Select>
-            <Select value={methodFilter} onChange={(e) => setMethodFilter(e.target.value)} className="flex-1 sm:flex-none sm:w-36">
-              <option value="">Semua Metode</option>
-              <option value="pickup">Ambil Sendiri</option>
-              <option value="delivery">Dikirim</option>
-            </Select>
+          {/* Filters & Sorting Quick Info */}
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="flex gap-2 flex-wrap flex-1">
+              <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="flex-1 sm:flex-none sm:w-44">
+                <option value="">Semua Status</option>
+                <option value="not_ready">Belum Siap</option>
+                <option value="ready_pickup">Siap Ambil</option>
+                <option value="picked_up">Sudah Ambil</option>
+                <option value="waiting_delivery">Menunggu</option>
+                <option value="on_delivery">Dalam Kirim</option>
+                <option value="delivered">Terkirim</option>
+              </Select>
+              <Select value={methodFilter} onChange={(e) => setMethodFilter(e.target.value)} className="flex-1 sm:flex-none sm:w-36">
+                <option value="">Semua Metode</option>
+                <option value="pickup">Ambil Sendiri</option>
+                <option value="delivery">Dikirim</option>
+              </Select>
+            </div>
+            <div className="text-xs text-stone-500 dark:text-stone-400 text-right font-medium">
+              💡 Klik kolom <strong className="text-emerald-600 dark:text-emerald-400">Hewan</strong> untuk mengurutkan.
+            </div>
           </div>
 
-          {/* Distribution list - mobile-first cards */}
+          {/* Distribution list - Table layout */}
           {isLoading ? (
             <div className="space-y-3">
-              {[1,2,3,4,5].map(i => <div key={i} className="skeleton h-28 rounded-2xl" />)}
+              {[1, 2, 3, 4, 5].map(i => <div key={i} className="skeleton h-16 rounded-xl" />)}
             </div>
           ) : dists.length === 0 ? (
             <EmptyState icon="🚚" title="Tidak ada distribusi" description="Coba ubah filter" />
           ) : (
-            <div className="space-y-3">
-              {dists.map((d) => (
-                <div key={d.id} className="card p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <p className="font-semibold text-stone-900 dark:text-white truncate">{d.mudhohi_name}</p>
-                        {d.animal_code && (
-                          <span className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
-                            {d.animal_code}
-                          </span>
-                        )}
-                        {d.method === 'delivery' ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
-                            🛵 KIRIM (GOJEK)
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
-                            🏠 AMBIL SENDIRI
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-stone-500 font-mono">{d.mudhohi_phone}</p>
-                      {d.delivery_address && (
-                        <p className="text-xs text-stone-400 mt-1 truncate">📍 {d.delivery_address}</p>
-                      )}
-                      {d.courier_name && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Kurir: {d.courier_name} · {d.courier_phone}</p>
-                      )}
-                    </div>
-                    <DistributionStatusBadge status={d.status} />
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    {d.recipient_phone && (
-                      <a href={`https://wa.me/${d.recipient_phone?.replace(/^0/, '62')}`} target="_blank" rel="noopener noreferrer"
-                        className="btn btn-secondary flex-1 text-xs py-2">
-                        💬 WhatsApp
-                      </a>
-                    )}
-                    <Button variant="primary" size="sm" className="flex-1" onClick={() => setUpdateDist(d)}>
-                      Update Status
-                    </Button>
-                  </div>
-                </div>
-              ))}
+            <div className="table-container bg-white dark:bg-stone-900 shadow-sm rounded-2xl border border-stone-200 dark:border-stone-800">
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead>
+                    <tr className="bg-stone-50 dark:bg-stone-800/40 text-stone-600 dark:text-stone-300">
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Mudhohi</th>
+                      <th 
+                        className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors select-none group"
+                        onClick={() => setSortAsc(!sortAsc)}
+                        title="Klik untuk mengurutkan antrean"
+                      >
+                        <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                          Hewan {sortAsc ? '▲' : '▼'}
+                        </span>
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Metode</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Alamat & Permintaan</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
+                    {sortedDists.map((d) => {
+                      const isCompleted = ['picked_up', 'delivered'].includes(d.status);
+                      return (
+                        <tr 
+                          key={d.id} 
+                          className={`hover:bg-stone-50 dark:hover:bg-stone-800/20 transition-all duration-200 ${
+                            isCompleted ? 'opacity-50 bg-stone-50/50 dark:bg-stone-900/10' : ''
+                          }`}
+                        >
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div>
+                              <p className="font-semibold text-stone-900 dark:text-white text-sm">{d.mudhohi_name}</p>
+                              <p className="text-xs text-stone-500 font-mono mt-0.5">{d.mudhohi_phone}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            {d.animal_code ? (
+                              <span className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+                                {d.animal_code}
+                              </span>
+                            ) : (
+                              <span className="text-stone-300 dark:text-stone-700">-</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            {d.method === 'delivery' ? (
+                              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1 w-max">
+                                🛵 KIRIM (GOJEK)
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 flex items-center gap-1 w-max">
+                                🏠 AMBIL SENDIRI
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 max-w-xs">
+                            <div className="space-y-1">
+                              {d.delivery_address && (
+                                <p className="text-xs text-stone-600 dark:text-stone-400 truncate" title={d.delivery_address}>
+                                  📍 {d.delivery_address}
+                                </p>
+                              )}
+                              {d.notes && (
+                                <p className="text-xs text-stone-500 bg-stone-50 dark:bg-stone-800/50 px-2 py-0.5 rounded border border-stone-200 dark:border-stone-700 inline-block max-w-full truncate" title={d.notes}>
+                                  💬 {d.notes}
+                                </p>
+                              )}
+                              {!d.delivery_address && !d.notes && <span className="text-stone-300 dark:text-stone-700">-</span>}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <DistributionStatusBadge status={d.status} />
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {d.recipient_phone && (
+                                <a 
+                                  href={`https://wa.me/${d.recipient_phone?.replace(/^0/, '62')}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="btn btn-secondary text-xs px-2.5 py-1.5 flex items-center gap-1 hover:text-emerald-600 transition-colors"
+                                >
+                                  💬 WA
+                                </a>
+                              )}
+                              <Button variant="primary" size="sm" onClick={() => setUpdateDist(d)}>
+                                Update
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </main>
