@@ -9,8 +9,8 @@ WORKDIR /app
 # Copy package files first (Docker layer cache)
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production && npm cache clean --force
+# Install production dependencies only (--omit=dev works on npm v7+)
+RUN npm ci --omit=dev && npm cache clean --force
 
 # ─── Runtime stage ─────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
