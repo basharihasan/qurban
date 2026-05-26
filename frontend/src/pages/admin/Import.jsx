@@ -10,8 +10,39 @@ import api from '../../services/api';
 import { DocumentArrowUpIcon, CheckCircleIcon, XCircleIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const TEMPLATE_DATA = [
-  { Nama: 'Ahmad Fauzi', 'No HP': '08111111111', Alamat: 'Jl. Merdeka No. 1, Jakarta', 'Jenis Hewan': 'kambing', Kelompok: 'Kelompok A', Preferensi: 'delivery' },
-  { Nama: 'Siti Aminah', 'No HP': '08222222222', Alamat: 'Jl. Sudirman No. 5, Bandung', 'Jenis Hewan': 'sapi', Kelompok: 'Kelompok A', Preferensi: 'pickup' },
+  {
+    'No.': 1,
+    'Nama': 'Abu Musa Pandu',
+    'No. HP': '085624115115',
+    'Jatah & Permintaan': 'Daging 5kg. Iga, paru, buntut, kaki',
+    'Tambahan': '',
+    'Pengambilan/Pengiriman': 'GSM B3',
+    'Hewan': 'Sapi 1',
+    'PJ': 'Ust. Abdurrahman & Abdullah',
+    'Kirim': ''
+  },
+  {
+    'No.': 2,
+    'Nama': 'Cepi Iskandar',
+    'No. HP': '081320072256',
+    'Jatah & Permintaan': 'Daging 5kg. Buntut and Iga daging lembut',
+    'Tambahan': '',
+    'Pengambilan/Pengiriman': 'Jl. Margahayu Kencana Blok G7/3 Margahayu Bandung',
+    'Hewan': 'Sapi 1',
+    'PJ': 'Ust. Abdurrahman & Abdullah',
+    'Kirim': ''
+  },
+  {
+    'No.': 3,
+    'Nama': 'Abu Khalid Atho',
+    'No. HP': '081395183218',
+    'Jatah & Permintaan': 'Daging 5kg. Iga, kaki, daging has',
+    'Tambahan': '',
+    'Pengambilan/Pengiriman': 'Diambil ke alhijrah',
+    'Hewan': 'Sapi 1',
+    'PJ': 'Ust. Abdurrahman & Abdullah',
+    'Kirim': ''
+  }
 ];
 
 export default function AdminImport() {
@@ -57,8 +88,18 @@ export default function AdminImport() {
     const ws = XLSX.utils.json_to_sheet(TEMPLATE_DATA);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Template Mudhohi');
-    // Set column widths
-    ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 35 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    // Set column widths to perfectly fit the new template structure
+    ws['!cols'] = [
+      { wch: 5 },   // No.
+      { wch: 25 },  // Nama
+      { wch: 15 },  // No. HP
+      { wch: 35 },  // Jatah & Permintaan
+      { wch: 10 },  // Tambahan
+      { wch: 45 },  // Pengambilan/Pengiriman
+      { wch: 12 },  // Hewan
+      { wch: 30 },  // PJ
+      { wch: 10 }   // Kirim
+    ];
     XLSX.writeFile(wb, 'template_mudhohi.xlsx');
     toast.success('Template berhasil diunduh');
   };
@@ -76,7 +117,7 @@ export default function AdminImport() {
             <ol className="space-y-2 text-sm text-stone-600 dark:text-stone-400 list-decimal list-inside">
               <li>Unduh template Excel di bawah ini</li>
               <li>Isi data mudhohi sesuai kolom yang tersedia</li>
-              <li>Kolom wajib: <strong className="text-stone-800 dark:text-stone-200">Nama</strong> dan <strong className="text-stone-800 dark:text-stone-200">No HP</strong></li>
+              <li>Kolom wajib: <strong className="text-stone-800 dark:text-stone-200">Nama</strong> dan <strong className="text-stone-800 dark:text-stone-200">No. HP</strong></li>
               <li>Nomor HP akan digunakan sebagai username dan password default</li>
               <li>Upload file dan klik tombol Import</li>
             </ol>
@@ -91,13 +132,13 @@ export default function AdminImport() {
           <div className="card p-5">
             <h3 className="font-semibold text-stone-800 dark:text-white mb-3">📊 Kolom yang Didukung</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {['Nama *', 'No HP *', 'Alamat', 'Jenis Hewan', 'Kelompok', 'Preferensi'].map((col) => (
+              {['No.', 'Nama *', 'No. HP *', 'Jatah & Permintaan', 'Tambahan', 'Pengambilan/Pengiriman', 'Hewan', 'PJ', 'Kirim'].map((col) => (
                 <div key={col} className="px-3 py-2 rounded-lg bg-stone-50 dark:bg-stone-800 text-sm font-mono text-stone-700 dark:text-stone-300">
                   {col}
                 </div>
               ))}
             </div>
-            <p className="text-xs text-stone-400 mt-3">* Kolom wajib diisi | Preferensi: "delivery" atau "pickup"</p>
+            <p className="text-xs text-stone-400 mt-3">* Kolom wajib diisi | Pengambilan/Pengiriman: masukan alamat lengkap untuk Kirim, atau tulis "Diambil ke alhijrah" untuk Ambil Sendiri.</p>
           </div>
 
           {/* File Drop Zone */}
