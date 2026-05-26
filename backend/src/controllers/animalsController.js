@@ -23,7 +23,7 @@ const getAnimals = async (req, res, next) => {
     }
 
     const [total, animals] = await Promise.all([
-      query.clone().count('* as count').first(),
+      query.clone().clearSelect().clearOrder().count('* as count').first(),
       query.orderBy('created_at', 'desc').limit(limit).offset(offset),
     ]);
 

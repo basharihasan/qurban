@@ -32,7 +32,7 @@ const getDistributions = async (req, res, next) => {
     }
 
     const [total, distributions] = await Promise.all([
-      query.clone().count('d.id as count').first(),
+      query.clone().clearSelect().clearOrder().count('d.id as count').first(),
       query.orderBy('d.updated_at', 'desc').limit(limit).offset(offset),
     ]);
 

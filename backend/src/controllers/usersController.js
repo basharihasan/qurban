@@ -22,7 +22,7 @@ const getUsers = async (req, res, next) => {
       });
     }
 
-    const totalQuery = query.clone().count('* as count').first();
+    const totalQuery = query.clone().clearSelect().clearOrder().count('* as count').first();
     const [total, users] = await Promise.all([
       totalQuery,
       query.orderBy('created_at', 'desc').limit(limit).offset(offset),

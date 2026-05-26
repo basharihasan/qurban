@@ -98,7 +98,7 @@ const getAuditLogs = async (req, res, next) => {
     if (action) query = query.where({ action });
 
     const [total, logs] = await Promise.all([
-      query.clone().count('* as count').first(),
+      query.clone().clearSelect().clearOrder().count('* as count').first(),
       query.limit(limit).offset(offset),
     ]);
 
