@@ -7,7 +7,6 @@ import { TopBar } from '../../components/layout/Sidebar';
 import { Button, Select, EmptyState, Modal, Input, Textarea } from '../../components/ui';
 import { DistributionStatusBadge } from '../../components/ui/StatusBadges';
 import api from '../../services/api';
-import { formatDateTime } from '../../utils/helpers';
 import { PhotoIcon, PhoneIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
@@ -17,6 +16,8 @@ const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
     courier_name: dist?.courier_name || '',
     courier_phone: dist?.courier_phone || '',
     recipient_phone: dist?.recipient_phone || '',
+    method: dist?.method || 'pickup',
+    delivery_address: dist?.delivery_address || '',
     notes: dist?.notes || '',
   });
   const [proofFile, setProofFile] = useState(null);
@@ -28,6 +29,8 @@ const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
       if (form.courier_name) fd.append('courier_name', form.courier_name);
       if (form.courier_phone) fd.append('courier_phone', form.courier_phone);
       if (form.recipient_phone !== undefined) fd.append('recipient_phone', form.recipient_phone);
+      if (form.method !== undefined) fd.append('method', form.method);
+      if (form.delivery_address !== undefined) fd.append('delivery_address', form.delivery_address);
       if (form.notes) fd.append('notes', form.notes);
       if (proofFile) fd.append('proof', proofFile);
       await api.put(`/distributions/${dist.id}/status`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -82,15 +85,35 @@ const QuickUpdateModal = ({ isOpen, onClose, dist }) => {
           )}
         </div>
 
-        <div className="form-group">
-          <label className="label">No. HP Penerima / WhatsApp</label>
-          <Input 
-            type="tel" 
-            placeholder="Contoh: 08123456789" 
-            value={form.recipient_phone} 
-            onChange={(e) => setForm({ ...form, recipient_phone: e.target.value })} 
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="form-group">
+            <label className="label">No. HP Penerima / WhatsApp</label>
+            <Input 
+              type="tel" 
+              placeholder="Contoh: 08123456789" 
+              value={form.recipient_phone} 
+              onChange={(e) => setForm({ ...form, recipient_phone: e.target.value })} 
+            />
+          </div>
+          <div className="form-group">
+            <label className="label">Metode Distribusi</label>
+            <Select value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })}>
+              <option value="pickup">🏠 AMBIL SENDIRI</option>
+              <option value="delivery">🛵 KIRIM (GOJEK)</option>
+            </Select>
+          </div>
         </div>
+
+        {form.method === 'delivery' && (
+          <div className="form-group">
+            <label className="label">Alamat Pengiriman</label>
+            <Input 
+              placeholder="Contoh: Jl. Sukamaju No. 123" 
+              value={form.delivery_address} 
+              onChange={(e) => setForm({ ...form, delivery_address: e.target.value })} 
+            />
+          </div>
+        )}
 
         {['on_delivery', 'delivered'].includes(form.status) && (
           <div className="grid grid-cols-2 gap-3">

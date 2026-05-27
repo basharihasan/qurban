@@ -73,7 +73,7 @@ const getDistribution = async (req, res, next) => {
 const updateDistributionStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, courier_name, courier_phone, notes, recipient_phone } = req.body;
+    const { status, courier_name, courier_phone, notes, recipient_phone, method, delivery_address } = req.body;
 
     if (!DISTRIBUTION_STATUSES.includes(status)) {
       return res.status(400).json({ success: false, message: `Invalid status` });
@@ -87,6 +87,8 @@ const updateDistributionStatus = async (req, res, next) => {
     if (courier_phone !== undefined) updateData.courier_phone = courier_phone;
     if (notes !== undefined) updateData.notes = notes;
     if (recipient_phone !== undefined) updateData.recipient_phone = recipient_phone;
+    if (method !== undefined) updateData.method = method;
+    if (delivery_address !== undefined) updateData.delivery_address = delivery_address;
     if (status === 'delivered') updateData.delivery_time = new Date();
 
     // Handle proof photo upload
