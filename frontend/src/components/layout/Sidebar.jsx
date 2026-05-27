@@ -92,8 +92,14 @@ export const Sidebar = () => {
 };
 
 export const TopBar = ({ title }) => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { isDark, toggle } = useThemeStore();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-100 dark:border-stone-800 px-4 lg:px-6 py-3 flex items-center justify-between">
@@ -104,6 +110,13 @@ export const TopBar = ({ title }) => {
           className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 dark:text-stone-400 transition-colors lg:hidden"
         >
           {isDark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+        </button>
+        <button
+          onClick={handleLogout}
+          className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-red-500 dark:text-red-400 transition-colors lg:hidden"
+          title="Keluar"
+        >
+          <ArrowRightOnRectangleIcon className="w-5 h-5" />
         </button>
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-50 dark:bg-stone-800">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
